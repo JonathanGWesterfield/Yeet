@@ -1,0 +1,40 @@
+Job-Type;Cust_id;school;From-Address;To-Address;Description;Pick-up & Drop Off instructions;Item-Size;Pickup-times
+delivery;135792468;Texas A&M University;400 Bizzell St, College Station, TX 77843;1301 S University Parks Dr, Waco, TX 76706;Teddy Bear;Pickup from front door and drop off on front porch;small;2019-09-08 19:47:25.680
+delivery;123456789;Baylor University;11410 Century Oaks Terrace, Austin, TX 78758;1001 Louisiana St # 1000, Houston, TX 77002;Refrigerator;My Dad will help you load it up;Large;2019-12-08 19:47:25.680
+delivery;748329108;Unversity of Texas;400 Bizzell St, College Station, TX 77843;11410 Century Oaks Terrace, Austin, TX 78758;Shelf;Medium;2019-10-25 19:47:25.680
+
+{
+  "job_type": "delivery",
+  "customer_id": 135792468,
+  "school": "Texas A&M University",
+  "to": "400 Bizzell St, College Station, TX 77843",
+  "from": "1301 S University Parks Dr, Waco, TX 76706",
+  "description": "Teddy Bear",
+  "instructions": "Pickup from front door and drop off on front porch.",
+  "item_size": 1,
+  "pickup_time": "2019-09-08T19:50:22.504Z"
+}
+
+{
+  "job_type": "delivery",
+  "customer_id": 123456789,
+  "school": "Baylor University",
+  "to": "11410 Century Oaks Terrace, Austin, TX 78758",
+  "from": "1001 Louisiana St # 1000, Houston, TX 77002",
+  "description": "Refrigerator",
+  "instructions": "My Dad will help you load it up.",
+  "item_size": 3,
+  "pickup_time": "2019-12-09T01:47:25.680Z"
+}
+
+{
+  "job_type": "delivery",
+  "customer_id": 748329108,
+  "school": "Unversity of Texas",
+  "to": "400 Bizzell St, College Station, TX 77843",
+  "from": "11410 Century Oaks Terrace, Austin, TX 78758",
+  "description": "Shelf",
+  "instructions": "My Dad will help you load it up.",
+  "item_size": 2,
+  "pickup_time": "2019-10-26T00:47:25.680Z"
+}

@@ -1,0 +1,1 @@
+[2019-09-02 17:25:44,927] INFO Got user-level KeeperException when processing sessionid:0x100033c2f0d0000 type:setData cxid:0x4b zxid:0x23 txntype:-1 reqpath:n/a Error Path:/config/topics/__consumer_offsets Error:KeeperErrorCode = NoNode for /config/topics/__consumer_offsets (org.apache.zookeeper.server.PrepRequestProcessor)
