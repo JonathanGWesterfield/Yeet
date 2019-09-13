@@ -26,6 +26,9 @@ public class JobCreator
         // producer.send(new ProducerRecord<String, String>(topic, )
     }
 
+    //TODO: Use the instructions here <https://kafka.apache.org/10/documentation/streams/developer-guide/datatypes.html#json>
+    // TO create the jobs using the custom serializer
+
     public void sendTestMessage()
     {
         Thread.currentThread().setContextClassLoader(null);
