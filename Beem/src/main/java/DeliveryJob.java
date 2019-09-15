@@ -27,6 +27,11 @@ public class DeliveryJob implements Serializable
     private int item_size;
     private Date pickup_time;
 
+    public enum Sizes
+    {
+        SMALL, MEDIUM, LARGE;
+    }
+
     /**
      * Default Empty Constructor
      */
@@ -36,17 +41,40 @@ public class DeliveryJob implements Serializable
     }
 
     /**
-     * Constructor for a delivery job.
+     * Another PRIMARY constructor in case the user wants to add the information for description, handling instructions,
+     * at a different time.
      * @param customer_id Customer ID in the database.
      * @param school What school the customer goes to. Ex: 'Texas A&M University'.
      * @param to_address What address driver needs to deliver package to.
      * @param from_address What address the driver needs to get the package from.
-     * @param description Description of the package the driver needs to deliver.
-     * @param instructions The pickup, drop-off, and handling instructions for the package being delivered.
-     * @param item_size The size of the package to be delivered. Valid options are 'small', 'medium', and 'large'.
+     * @param item_size The size of the package to be delivered. Valid options are from the DeliveryJobs.Sizes enumeration
+     */
+    public DeliveryJob(long customer_id, String school, String to_address, String from_address, DeliveryJob.Sizes item_size)
+    {
+        this.job_type = "delivery";
+        this.customer_id = customer_id;
+        this.school = school;
+        this.to_address = to_address;
+        this.to_city = parseCity(to_address);
+        this.to_state = parseState(to_address);
+        this.to_zipcode = parseZipCode(to_address);
+        this.from_address = from_address;
+        this.from_city = parseCity(from_address);
+        this.from_state = parseState(from_address);
+        this.from_zipcode = parseZipCode(from_address);
+        this.item_size = calcSize(item_size);
+    }
+
+    /**
+     * PRIMARY Constructor for delivery job
+     * @param customer_id Customer ID in the database.
+     * @param school What school the customer goes to. Ex: 'Texas A&M University'.
+     * @param to_address What address driver needs to deliver package to.
+     * @param from_address What address the driver needs to get the package from.
+     * @param item_size The size of the package to be delivered. Valid options are from the DeliveryJobs.Sizes enumeration
      */
     public DeliveryJob(int customer_id, String school, String to_address, String from_address, String description,
-                           String instructions, String item_size)
+                       String instructions, DeliveryJob.Sizes item_size)
     {
         this.job_type = "delivery";
         this.customer_id = customer_id;
@@ -71,7 +99,7 @@ public class DeliveryJob implements Serializable
         return this.job_type;
     }
 
-    public long getcustomer_id()
+    public long getCustomer_id()
     {
         return this.customer_id;
     }
@@ -136,7 +164,84 @@ public class DeliveryJob implements Serializable
         return this.item_size;
     }
 
+    /** Setters */
+    public void setCustomer_id(long id)
+    {
+        this.customer_id = id;
+    }
 
+    /**
+     * Sets the school the customer is currently attending. Ex: 'Texas A&M University'.
+     * @param school The school the customer is attending.
+     */
+    public void setSchool(String school)
+    {
+        this.school = school;
+    }
+
+    /**
+     * Setter for the to_address member. Also sets the to_city, to_state, and to_zipcode members since they
+     * are all derived from to_address. Address must follow a strict format of
+     * "<Room number, PO BOX, etc>, <City>, <State> <Zip Code>"
+     * @param address The address we need to send the package to. Example: "11410 Century Oaks Terrace, Austin, TX 78758"
+     */
+    public void setTo_address(String address)
+    {
+        this.to_address = address;
+        this.to_city = parseCity(address);
+        this.to_state = parseState(address);
+        this.to_zipcode = parseZipCode(address);
+    }
+
+    /**
+     * Setter for the from_address member. Also sets the from_city, from_state, and from_zipcode members since they
+     * are all derived from from_address. Address must follow a strict format of
+     *      * "<Room number, PO BOX, etc>, <City>, <State> <Zip Code>"
+     * @param address The address we are picking the package up from. Example: "11410 Century Oaks Terrace, Austin, TX 78758"
+     */
+    public void setFrom_address(String address)
+    {
+        this.from_address = address;
+        this.from_city = parseCity(address);
+        this.from_state = parseState(address);
+        this.from_zipcode = parseZipCode(address);
+    }
+
+    /**
+     * Set the description for the job
+     * @param desc Job description
+     */
+    public void setDescription(String desc)
+    {
+        this.description = desc;
+    }
+
+    /**
+     * Sets the handling, pickup and dropoff instructions for the delivery job.
+     * @param instr Instructions for the handling of the delivery.
+     */
+    public void setInstructions(String instr)
+    {
+        this.instructions = instr;
+    }
+
+    /**
+     * Sets the size of the delivery package. Only 3 valid sizes.
+     * @param size 'small' size = 1, 'medium' = 2, and 'large' = 3.
+     */
+    public void setItem_size(int size)
+    {
+        this.item_size = size;
+    }
+
+    /**
+     * Sets the size of the delivery package. Only 3 valid sizes.
+     * @param size 'small' size = 1, 'medium' = 2, and 'large' = 3.
+     */
+    public void setItem_size(String size)
+    {
+        this.item_size = calcSize(size);
+    }
 
     /**
      * Parses the address and returns the city in the Address. Uses the comma in the address as the delimiter.
@@ -193,6 +298,21 @@ public class DeliveryJob implements Serializable
             throw new IllegalArgumentException("Invalid item size. Sizes must be either 'small', 'medium' or 'large'!");
     }
 
+    public int calcSize(DeliveryJob.Sizes size)
+    {
+        switch(size)
+        {
+            case SMALL:
+                return 1;
+            case MEDIUM:
+                return 2;
+            case LARGE:
+                return 3;
+            default:
+                throw new IllegalArgumentException("Invalid item size. Sizes must be either 'small', 'medium' or 'large'!");
+        }
+    }
+
     /**
      * Compares this instance of the class to another instance of this class to see if they are equal. This is made
      * for testing purposes.
@@ -202,7 +322,7 @@ public class DeliveryJob implements Serializable
     public boolean equals(DeliveryJob otherJob)
     {
         if (this.job_type.equals(otherJob.getJob_type()))
-            if(this.customer_id == otherJob.getcustomer_id())
+            if(this.customer_id == otherJob.getCustomer_id())
                 if(this.school.equals(otherJob.getSchool()))
                     if(this.to_address.equals(otherJob.getTo_address()))
                         if(this.from_address.equals(otherJob.getFrom_address()))

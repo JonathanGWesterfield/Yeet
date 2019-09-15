@@ -25,7 +25,7 @@ public class Test_KafkaJsonSerializer
 
         DeliveryJob job = new DeliveryJob(123456789, "Texas A&M University",
                 "400 Bizzell St, College Station, TX 77843", "11410 Century Oaks Terrace, Austin, TX 78758",
-                "Shelf", "My dad will help you load it up.", "Medium");
+                "Shelf", "My dad will help you load it up.", DeliveryJob.Sizes.MEDIUM);
 
         Properties props = configProps();
         Producer<String, DeliveryJob> producer =
