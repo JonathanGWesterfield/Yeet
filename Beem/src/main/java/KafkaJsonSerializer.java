@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Creating a Custom serializer so we can serialize the RideShare and DeliveryJob objects into JSON.
  * This will make it easier for when we need to route jobs to different topics using the Streams API.
- * @param <T>
+ * @param <T> The Java POJO object we need to serialize into a json string
  */
 public class KafkaJsonSerializer<T> implements Serializer<T> {
     private final ObjectMapper objectMapper = new ObjectMapper();

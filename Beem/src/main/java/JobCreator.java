@@ -27,7 +27,7 @@ public class JobCreator
     }
 
     //TODO: Use the instructions here <https://kafka.apache.org/10/documentation/streams/developer-guide/datatypes.html#json>
-    // TO create the jobs using the custom serializer
+    // TO create the jobs using the custom serializer <https://medium.com/@asce4s/send-and-receive-json-objects-with-kafka-java-client-41bfbb4de108>
 
     public void sendTestMessage()
     {

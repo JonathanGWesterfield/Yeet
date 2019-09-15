@@ -86,4 +86,32 @@ public class Test_DeliveryJob extends TestCase
             // Ignore. It's supposed to throw an exception. This means it passed.
         }
     }
+
+    @Test
+    public void testEquals()
+    {
+        DeliveryJob job = new DeliveryJob(123456789, "Texas A&M University",
+                "400 Bizzell St, College Station, TX 77843", "11410 Century Oaks Terrace, Austin, TX 78758",
+                "Shelf", "My dad will help you load it up.", "Medium");
+
+        DeliveryJob sameJob = new DeliveryJob(123456789, "Texas A&M University",
+                "400 Bizzell St, College Station, TX 77843", "11410 Century Oaks Terrace, Austin, TX 78758",
+                "Shelf", "My dad will help you load it up.", "Medium");
+
+        DeliveryJob diffJob = new DeliveryJob(123456789, "Texas A&M University",
+                "400 Bizzell St, College Station, TX 77843", "11410 Century Oaks Terrace, Austin, TX 78758",
+                "Shelf", "My dad will help you load it up.", "Large");
+
+        // Test if 2 same jobs with different references are deemed equal
+        assertEquals(true, job.equals(sameJob));
+
+        // Test if 2 different jobs are different
+        assertEquals(false, job.equals(diffJob));
+
+        // Test if 2 different jobs are different
+        assertEquals(false, sameJob.equals(diffJob));
+
+        // Test if job equals itself
+        assertEquals(true, job.equals(job));
+    }
 }

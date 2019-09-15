@@ -1,7 +1,13 @@
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.InputMismatchException;
 import java.util.StringTokenizer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.kafka.common.errors.SerializationException;
+import org.apache.kafka.common.serialization.Serializer;
+
+import java.util.Map;
 
 public class DeliveryJob implements Serializable
 {
@@ -31,7 +37,7 @@ public class DeliveryJob implements Serializable
 
     /**
      * Constructor for a delivery job.
-     * @param cust_id Customer ID in the database.
+     * @param customer_id Customer ID in the database.
      * @param school What school the customer goes to. Ex: 'Texas A&M University'.
      * @param to_address What address driver needs to deliver package to.
      * @param from_address What address the driver needs to get the package from.
@@ -39,10 +45,11 @@ public class DeliveryJob implements Serializable
      * @param instructions The pickup, drop-off, and handling instructions for the package being delivered.
      * @param item_size The size of the package to be delivered. Valid options are 'small', 'medium', and 'large'.
      */
-    public DeliveryJob(int cust_id, String school, String to_address, String from_address, String description,
+    public DeliveryJob(int customer_id, String school, String to_address, String from_address, String description,
                            String instructions, String item_size)
     {
-        this.customer_id = cust_id;
+        this.job_type = "delivery";
+        this.customer_id = customer_id;
         this.school = school;
         this.to_address = to_address;
         this.to_city = parseCity(to_address);
@@ -64,7 +71,7 @@ public class DeliveryJob implements Serializable
         return this.job_type;
     }
 
-    public long getCustomer_ID()
+    public long getcustomer_id()
     {
         return this.customer_id;
     }
@@ -124,6 +131,13 @@ public class DeliveryJob implements Serializable
         return this.instructions;
     }
 
+    public int getItem_size()
+    {
+        return this.item_size;
+    }
+
+
+
     /**
      * Parses the address and returns the city in the Address. Uses the comma in the address as the delimiter.
      * @param address The address we need to parse.
@@ -177,6 +191,50 @@ public class DeliveryJob implements Serializable
             return 3;
         else
             throw new IllegalArgumentException("Invalid item size. Sizes must be either 'small', 'medium' or 'large'!");
+    }
+
+    /**
+     * Compares this instance of the class to another instance of this class to see if they are equal. This is made
+     * for testing purposes.
+     * @param otherJob The other DeliveryJob Object we need to compare to
+     * @return True if they are the same object (have same contents, not necessarily same object reference). False otherwise.
+     */
+    public boolean equals(DeliveryJob otherJob)
+    {
+        if (this.job_type.equals(otherJob.getJob_type()))
+            if(this.customer_id == otherJob.getcustomer_id())
+                if(this.school.equals(otherJob.getSchool()))
+                    if(this.to_address.equals(otherJob.getTo_address()))
+                        if(this.from_address.equals(otherJob.getFrom_address()))
+                            if(this.description.equals(otherJob.getDescription()))
+                                if(this.instructions.equals(otherJob.getInstructions()))
+                                    if(this.item_size == otherJob.getItem_size())
+                                        return true;
+
+        return false;
+    }
+
+    /**
+     * Converts the class instance state to a JSON String, format should be the same as what gets sent to a kafka topic
+     * @return A string of the current state of the DeliveryJob Instance in JSON format
+     */
+    @Override
+    public String toString()
+    {
+        StringBuilder json = new StringBuilder();
+
+        ObjectMapper mapper = new ObjectMapper();
+        try
+        {
+            json.append(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this));
+        }
+        catch (IOException e)
+        {
+            // TODO: MAKE THIS LOG THE ERROR SINCE THIS SHOULDN'T BREAK ANYTHING (IT'S ONLY USED FOR PRINT STATEMENTS)
+            e.printStackTrace();
+        }
+
+        return json.toString();
     }
 
 }
