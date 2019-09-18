@@ -2,10 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="3775b295-09a4-4132-a34f-6f12379180d1" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/DeliveryJob.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/DeliveryJob.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/Test_DeliveryJob.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/Test_DeliveryJob.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -20,11 +18,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/DeliveryJob.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="102">
-              <caret line="343" column="91" selection-start-line="343" selection-start-column="91" selection-end-line="343" selection-end-column="91" />
+            <state relative-caret-position="250">
+              <caret line="327" column="8" selection-start-line="327" selection-start-column="8" selection-end-line="337" selection-end-column="21" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#3495#3496#0" expanded="true" />
@@ -75,8 +73,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/RideShareJob.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="364">
-              <caret line="321" column="91" selection-start-line="321" selection-start-column="91" selection-end-line="321" selection-end-column="91" />
+            <state relative-caret-position="2805">
+              <caret line="312" column="7" selection-start-line="312" selection-start-column="7" selection-end-line="312" selection-end-column="7" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#5982#6140#0" />
@@ -101,7 +99,7 @@
         <entry file="file://$PROJECT_DIR$/src/main/java/Address.java">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="480">
-              <caret line="100" column="5" lean-forward="true" selection-start-line="100" selection-start-column="5" selection-end-line="100" selection-end-column="5" />
+              <caret line="100" column="5" selection-start-line="100" selection-start-column="5" selection-end-line="100" selection-end-column="5" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -129,6 +127,15 @@
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/pom.xml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="461">
+              <caret line="67" column="21" lean-forward="true" selection-start-line="67" selection-start-column="21" selection-end-line="67" selection-end-column="21" />
             </state>
           </provider>
         </entry>
@@ -183,15 +190,15 @@
         <option value="$PROJECT_DIR$/src/main/java/KafkaJsonSerializer.java" />
         <option value="$PROJECT_DIR$/src/main/java/KafkaJsonDeserializer.java" />
         <option value="$PROJECT_DIR$/Beem.iml" />
-        <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/src/test/java/Test_KafkaJsonSerializer.java" />
         <option value="$PROJECT_DIR$/src/main/java/RideshareJob.java" />
         <option value="$PROJECT_DIR$/src/main/java/AddressOps.java" />
         <option value="$PROJECT_DIR$/src/main/java/Address.java" />
         <option value="$PROJECT_DIR$/src/test/java/Test_DeliveryJob.java" />
         <option value="$PROJECT_DIR$/src/test/java/Test_Address.java" />
-        <option value="$PROJECT_DIR$/src/main/java/RideShareJob.java" />
         <option value="$PROJECT_DIR$/src/main/java/DeliveryJob.java" />
+        <option value="$PROJECT_DIR$/src/main/java/RideShareJob.java" />
+        <option value="$PROJECT_DIR$/pom.xml" />
       </list>
     </option>
   </component>
@@ -296,7 +303,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="JUnit.Test_Address">
+  <component name="RunManager" selected="JUnit.Test_KafkaJSONSerDes">
     <configuration name="JobCreator" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="JobCreator" />
       <module name="Beem" />
@@ -358,9 +365,6 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="Test_DeliveryJob - 2019.09.17 at 22h 46m 12s.xml">
-      <configuration name="Test_DeliveryJob" configurationId="JUnit" />
-    </history-entry>
     <history-entry file="Test_DeliveryJob - 2019.09.17 at 22h 46m 51s.xml">
       <configuration name="Test_DeliveryJob" configurationId="JUnit" />
     </history-entry>
@@ -387,6 +391,9 @@
     </history-entry>
     <history-entry file="Test_Address - 2019.09.17 at 22h 59m 07s.xml">
       <configuration name="Test_Address" configurationId="JUnit" />
+    </history-entry>
+    <history-entry file="Test_KafkaJSONSerDes - 2019.09.17 at 23h 26m 07s.xml">
+      <configuration name="Test_KafkaJSONSerDes" configurationId="JUnit" />
     </history-entry>
   </component>
   <component name="ToolWindowManager">
@@ -525,13 +532,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pom.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="276">
-          <caret line="23" column="40" lean-forward="true" selection-start-line="23" selection-start-column="40" selection-end-line="23" selection-end-column="40" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/test/java/Test_DeliveryJob.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-349">
@@ -545,7 +545,7 @@
     <entry file="file://$PROJECT_DIR$/src/main/java/Address.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="480">
-          <caret line="100" column="5" lean-forward="true" selection-start-line="100" selection-start-column="5" selection-end-line="100" selection-end-column="5" />
+          <caret line="100" column="5" selection-start-line="100" selection-start-column="5" selection-end-line="100" selection-end-column="5" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -562,33 +562,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/RideShareJob.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="364">
-          <caret line="321" column="91" selection-start-line="321" selection-start-column="91" selection-end-line="321" selection-end-column="91" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#5982#6140#0" />
-            <element signature="e#6229#6613#0" />
-            <element signature="e#6229#6867#0" />
-            <element signature="e#6873#7278#0" />
-            <element signature="e#6873#7542#0" />
-            <element signature="e#5869#6140#0" />
-            <element signature="method#setTo_latitude#0;class#RideShareJob#0" />
-            <element signature="docComment;method#setTo_longitude#0;class#RideShareJob#0" />
-            <element signature="method#setTo_longitude#0;class#RideShareJob#0" />
-            <element signature="docComment;method#setFrom_latitude#0;class#RideShareJob#0" />
-            <element signature="method#setTo_latitude#1;class#RideShareJob#0" />
-            <element signature="docComment;method#setTo_longitude#1;class#RideShareJob#0" />
-            <element signature="method#setTo_longitude#1;class#RideShareJob#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/DeliveryJob.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="343" column="91" selection-start-line="343" selection-start-column="91" selection-end-line="343" selection-end-column="91" />
+        <state relative-caret-position="250">
+          <caret line="327" column="8" selection-start-line="327" selection-start-column="8" selection-end-line="337" selection-end-column="21" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#3495#3496#0" expanded="true" />
@@ -632,6 +609,36 @@
             <element signature="e#7037#7038#0" expanded="true" />
             <element signature="e#7084#7085#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/RideShareJob.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2805">
+          <caret line="312" column="7" selection-start-line="312" selection-start-column="7" selection-end-line="312" selection-end-column="7" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#5982#6140#0" />
+            <element signature="e#6229#6613#0" />
+            <element signature="e#6229#6867#0" />
+            <element signature="e#6873#7278#0" />
+            <element signature="e#6873#7542#0" />
+            <element signature="e#5869#6140#0" />
+            <element signature="method#setTo_latitude#0;class#RideShareJob#0" />
+            <element signature="docComment;method#setTo_longitude#0;class#RideShareJob#0" />
+            <element signature="method#setTo_longitude#0;class#RideShareJob#0" />
+            <element signature="docComment;method#setFrom_latitude#0;class#RideShareJob#0" />
+            <element signature="method#setTo_latitude#1;class#RideShareJob#0" />
+            <element signature="docComment;method#setTo_longitude#1;class#RideShareJob#0" />
+            <element signature="method#setTo_longitude#1;class#RideShareJob#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pom.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="461">
+          <caret line="67" column="21" lean-forward="true" selection-start-line="67" selection-start-column="21" selection-end-line="67" selection-end-column="21" />
         </state>
       </provider>
     </entry>
