@@ -1,14 +1,19 @@
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Date;
 import java.util.InputMismatchException;
-import java.util.StringTokenizer;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.kafka.common.errors.SerializationException;
-import org.apache.kafka.common.serialization.Serializer;
 
-import java.util.Map;
-
+/**
+ * This class represents a delivery job and the details of the job. I kept this as a separate class from the
+ * rideshare class to enforce that these are 2 separate objects with separate responsibilities.
+ * Also, I don't use camel case for the class members since the names are used as identification
+ * in the JSON object that gets sent into kafka. It's in keeping with making the JSON readable.
+ *
+ * @author Jonathan Westerfield
+ * @version 1.0
+ * @since 9/11/2019
+ */
 public class DeliveryJob implements Serializable
 {
     private String job_type;
@@ -25,7 +30,6 @@ public class DeliveryJob implements Serializable
     private String description;
     private String instructions;
     private int item_size;
-    private Date pickup_time;
 
     public enum Sizes
     {
@@ -55,13 +59,13 @@ public class DeliveryJob implements Serializable
         this.customer_id = customer_id;
         this.school = school;
         this.to_address = to_address;
-        this.to_city = parseCity(to_address);
-        this.to_state = parseState(to_address);
-        this.to_zipcode = parseZipCode(to_address);
+        this.to_city = Address.parseCity(to_address);
+        this.to_state = Address.parseState(to_address);
+        this.to_zipcode = Address.parseZipCode(to_address);
         this.from_address = from_address;
-        this.from_city = parseCity(from_address);
-        this.from_state = parseState(from_address);
-        this.from_zipcode = parseZipCode(from_address);
+        this.from_city = Address.parseCity(from_address);
+        this.from_state = Address.parseState(from_address);
+        this.from_zipcode = Address.parseZipCode(from_address);
         this.item_size = calcSize(item_size);
     }
 
@@ -80,13 +84,13 @@ public class DeliveryJob implements Serializable
         this.customer_id = customer_id;
         this.school = school;
         this.to_address = to_address;
-        this.to_city = parseCity(to_address);
-        this.to_state = parseState(to_address);
-        this.to_zipcode = parseZipCode(to_address);
+        this.to_city = Address.parseCity(to_address);
+        this.to_state = Address.parseState(to_address);
+        this.to_zipcode = Address.parseZipCode(to_address);
         this.from_address = from_address;
-        this.from_city = parseCity(from_address);
-        this.from_state = parseState(from_address);
-        this.from_zipcode = parseZipCode(from_address);
+        this.from_city = Address.parseCity(from_address);
+        this.from_state = Address.parseState(from_address);
+        this.from_zipcode = Address.parseZipCode(from_address);
         this.description = description;
         this.instructions = instructions;
         this.item_size = calcSize(item_size);
@@ -188,9 +192,9 @@ public class DeliveryJob implements Serializable
     public void setTo_address(String address)
     {
         this.to_address = address;
-        this.to_city = parseCity(address);
-        this.to_state = parseState(address);
-        this.to_zipcode = parseZipCode(address);
+        this.to_city = Address.parseCity(address);
+        this.to_state = Address.parseState(address);
+        this.to_zipcode = Address.parseZipCode(address);
     }
 
     /**
@@ -202,9 +206,9 @@ public class DeliveryJob implements Serializable
     public void setFrom_address(String address)
     {
         this.from_address = address;
-        this.from_city = parseCity(address);
-        this.from_state = parseState(address);
-        this.from_zipcode = parseZipCode(address);
+        this.from_city = Address.parseCity(address);
+        this.from_state = Address.parseState(address);
+        this.from_zipcode = Address.parseZipCode(address);
     }
 
     /**
@@ -243,41 +247,41 @@ public class DeliveryJob implements Serializable
         this.item_size = calcSize(size);
     }
 
-    /**
-     * Parses the address and returns the city in the Address. Uses the comma in the address as the delimiter.
-     * @param address The address we need to parse.
-     * @return The city in the address. Example is 'Houston'.
-     */
-    public String parseCity(String address)
-    {
-        StringTokenizer tokenizer = new StringTokenizer(address, ",");
-        tokenizer.nextToken();
-        String city = tokenizer.nextToken();
-
-        return city.trim();
-    }
-
-    /**
-     * Parses the address and returns the state in the Address. Uses the comma in the address as the delimiter.
-     * @param address The address we need to parse the state out of.
-     * @return The state in the address. Example is 'TX'.
-     */
-    public String parseState(String address)
-    {
-        String[] addyArr = address.split(" ");
-        return addyArr[addyArr.length - 2];
-    }
-
-    /**
-     * Parses the address and return the zip code in the address. Uses the comma in the address as the delimiter.
-     * @param address The address we need to parse the zip code from.
-     * @return The zip code in the address. Example is '77064'
-     */
-    public String parseZipCode(String address)
-    {
-        String[] addyArr = address.split(" ");
-        return addyArr[addyArr.length - 1];
-    }
+//    /**
+//     * Parses the address and returns the city in the Address. Uses the comma in the address as the delimiter.
+//     * @param address The address we need to parse.
+//     * @return The city in the address. Example is 'Houston'.
+//     */
+//    public String parseCity(String address)
+//    {
+//        StringTokenizer tokenizer = new StringTokenizer(address, ",");
+//        tokenizer.nextToken();
+//        String city = tokenizer.nextToken();
+//
+//        return city.trim();
+//    }
+//
+//    /**
+//     * Parses the address and returns the state in the Address. Uses the comma in the address as the delimiter.
+//     * @param address The address we need to parse the state out of.
+//     * @return The state in the address. Example is 'TX'.
+//     */
+//    public String parseState(String address)
+//    {
+//        String[] addyArr = address.split(" ");
+//        return addyArr[addyArr.length - 2];
+//    }
+//
+//    /**
+//     * Parses the address and return the zip code in the address. Uses the comma in the address as the delimiter.
+//     * @param address The address we need to parse the zip code from.
+//     * @return The zip code in the address. Example is '77064'
+//     */
+//    public String parseZipCode(String address)
+//    {
+//        String[] addyArr = address.split(" ");
+//        return addyArr[addyArr.length - 1];
+//    }
 
     /**
      * Determines what integer represents the item size. 'small' size = 1, 'medium' = 2, and 'large' = 3.
@@ -335,8 +339,9 @@ public class DeliveryJob implements Serializable
     }
 
     /**
-     * Converts the class instance state to a JSON String, format should be the same as what gets sent to a kafka topic
-     * @return A string of the current state of the DeliveryJob Instance in JSON format
+     * Converts the class instance state to a pretty printed JSON String, format should
+     * be the same as what gets sent to a kafka topic.
+     * @return A string of the current state of the DeliveryJob Instance in pretty printed JSON format
      */
     @Override
     public String toString()
