@@ -67,6 +67,13 @@
 <!--            used to be 2.8.8-->
         </dependency>
 
+        <!-- Used to speed up multithreading -->
+        <dependency>
+            <groupId>com.lmax</groupId>
+            <artifactId>disruptor</artifactId>
+            <version>3.4.2</version>
+        </dependency>
+
     </dependencies>
 
 

@@ -26,12 +26,17 @@ public class TopicCreator
 {
     private String zookeeperConnect = "zkserver1:2181";
     private String kakfaBrokerAddress = "localhost:9092";
+    private NewTopic topic;
     private int sessionTimeoutMs = 10 * 1000; // 10 Second timeout
     private int connectionTimeoutMs = 8 * 1000; // 8 second timeout
 
     public static void main(String[] args)
     {
-        // TODO: TEST THIS
+        TopicCreator newTopic = new TopicCreator("localhost:2181", "localhost:9092");
+        newTopic.createTopic("dallas-tx-delivery", 1, 1);
+
+        HashMap<String, String> configs = newTopic.getNewTopicInfo();
+
     }
 
     /**
@@ -80,11 +85,32 @@ public class TopicCreator
 
         Map<String, String> configs = new HashMap<>();
 
-        NewTopic topic = new NewTopic(topicName, numPartitions, (short)numReplication);
+        this.topic = new NewTopic(topicName, numPartitions, (short)numReplication);
 
         CreateTopicsResult result = admin.createTopics(Arrays.asList(topic.configs(configs)));
 
         logTopicCreation(result);
+    }
+
+    /**
+     * Gives us information on the topic we just created. This is to store in a database in case we need
+     * to reference it for other streaming or consumer applications.
+     * @return Information about the topic in key value pairs.
+     */
+    public HashMap<String, String> getNewTopicInfo()
+    {
+        // Case where user is calling this before creating the new topic
+        if(this.topic == null)
+            throw new NullPointerException("You must call createTopic() before you can get the new topic details!!");
+
+        HashMap<String, String> props = new HashMap<>();
+        props.put("name", topic.name());
+        props.put("numPartitions", Integer.toString(topic.numPartitions()));
+        props.put("replicationFactor", Short.toString(topic.replicationFactor()));
+        props.put("replicasAssignments", topic.replicasAssignments().toString());
+        props.put("configs", topic.configs().toString());
+
+        return props;
     }
 
     /**
