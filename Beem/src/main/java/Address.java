@@ -17,6 +17,59 @@ import java.util.*;
  */
 public class Address
 {
+    private static HashMap<String, String> states;
+    static {
+        states = new HashMap<>();
+        states.put("AL", "ALABAMA");
+        states.put("AK", "ALASKA");
+        states.put("AZ", "ARIZONA");
+        states.put("AR", "ARKANSAS");
+        states.put("CA", "CALIFORNIA");
+        states.put("CO", "COLORADO");
+        states.put("CT", "CONNECTICUT");
+        states.put("DE", "DELAWARE");
+        states.put("FL", "FLORIDA");
+        states.put("GA", "GEORGIA");
+        states.put("HI", "HAWAII");
+        states.put("ID", "IDAHO");
+        states.put("IL", "ILLINOIS");
+        states.put("IN", "INDIANA");
+        states.put("IA", "IOWA");
+        states.put("KS", "KENTUCKY");
+        states.put("LA", "LOUISIANA");
+        states.put("ME", "MAINE");
+        states.put("MD", "MARYLAND");
+        states.put("MA", "MASSACHUSETTS");
+        states.put("MI", "MICHIGAN");
+        states.put("MN", "MINNESOTA");
+        states.put("MS", "MISSISSIPPI");
+        states.put("MO", "MISSOURI");
+        states.put("MT", "MONTANA");
+        states.put("NE", "NEBRASKA");
+        states.put("NV", "NEVADA");
+        states.put("NH", "NEW HAMPSHIRE");
+        states.put("NJ", "NEW JERSEY");
+        states.put("NM", "NEW MEXICO");
+        states.put("NY", "NEW YORK");
+        states.put("NC", "NORTH CAROLINA");
+        states.put("ND", "NORTH DAKOTA");
+        states.put("OH", "OHIO");
+        states.put("OK", "OKLAHOMA");
+        states.put("OR", "OREGON");
+        states.put("PA", "PENNSYLVANIA");
+        states.put("RI", "RHODE ISLAND");
+        states.put("SC", "SOUTH CAROLINA");
+        states.put("SD", "SOUTH DAKOTA");
+        states.put("TN", "TENNESSEE");
+        states.put("TX", "TEXAS");
+        states.put("UT", "UTAH");
+        states.put("VT", "VERMONT");
+        states.put("VA", "VIRGINIA");
+        states.put("WA", "WASHINGTON");
+        states.put("WV", "WEST VIRGINIA");
+        states.put("WI", "WISCONSIN");
+        states.put("WY", "WYOMING ");
+    }
     /**
      * Parses the address and returns the city in the Address. Uses the comma in the address as the delimiter.
      * @param address The address we need to parse.
@@ -99,4 +152,19 @@ public class Address
             return true;
         return false;
     }
+
+    /**
+     * Checks to make sure that the state code we are trying to use is actually valid. Is also used to enforce
+     * using the 2 character state codes for every state instead of using the full state name as to avoid spelling
+     * errors and enforce consistency.
+     * @param stateCode The state code. Ex: TX, CA
+     * @return True if the state code is valid, false otherwise.
+     */
+    public static boolean isValidState(String stateCode)
+    {
+        if(states.containsKey(stateCode))
+            return true;
+        return false;
+    }
+
 }

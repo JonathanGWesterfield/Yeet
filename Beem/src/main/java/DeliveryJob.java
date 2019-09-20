@@ -247,42 +247,6 @@ public class DeliveryJob implements Serializable
         this.item_size = calcSize(size);
     }
 
-//    /**
-//     * Parses the address and returns the city in the Address. Uses the comma in the address as the delimiter.
-//     * @param address The address we need to parse.
-//     * @return The city in the address. Example is 'Houston'.
-//     */
-//    public String parseCity(String address)
-//    {
-//        StringTokenizer tokenizer = new StringTokenizer(address, ",");
-//        tokenizer.nextToken();
-//        String city = tokenizer.nextToken();
-//
-//        return city.trim();
-//    }
-//
-//    /**
-//     * Parses the address and returns the state in the Address. Uses the comma in the address as the delimiter.
-//     * @param address The address we need to parse the state out of.
-//     * @return The state in the address. Example is 'TX'.
-//     */
-//    public String parseState(String address)
-//    {
-//        String[] addyArr = address.split(" ");
-//        return addyArr[addyArr.length - 2];
-//    }
-//
-//    /**
-//     * Parses the address and return the zip code in the address. Uses the comma in the address as the delimiter.
-//     * @param address The address we need to parse the zip code from.
-//     * @return The zip code in the address. Example is '77064'
-//     */
-//    public String parseZipCode(String address)
-//    {
-//        String[] addyArr = address.split(" ");
-//        return addyArr[addyArr.length - 1];
-//    }
-
     /**
      * Determines what integer represents the item size. 'small' size = 1, 'medium' = 2, and 'large' = 3.
      * @param itemSize The size of the item. Valid sizes are 'small', 'medium' and 'large'
