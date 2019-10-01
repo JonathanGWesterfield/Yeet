@@ -55,7 +55,7 @@ public class RideShareJob implements Serializable
      */
     public RideShareJob(long customer_id, String school, String to_address, String from_address, int num_passengers)
     {
-        this.job_type = "RideShare";
+        this.job_type = "rideShare";
         this.customer_id = customer_id;
         this.school = school;
         this.to_address = to_address;

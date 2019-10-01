@@ -1,12 +1,16 @@
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.util.JSONPObject;
+import jdk.nashorn.internal.parser.JSONParser;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
+import org.json.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Predicate;
 import org.apache.kafka.streams.kstream.ValueMapper;
 
 import java.io.IOException;
@@ -31,6 +35,11 @@ public class SchoolToCityStream
     private Map<String, List<PartitionInfo>> schoolKTopics;
     private Map<String, List<PartitionInfo>> cityKTopics;
     private StreamsBuilder builder;
+
+    private KStream<String, String> sourceStream;
+    private KStream<String, String> deliveryStream;
+    private KStream<String, String> rideShareStream;
+    private KStream<String, String>[] cityStreams; // array of streams - one stream for each city
 
     public static void main(String[] args)
     {
@@ -74,15 +83,56 @@ public class SchoolToCityStream
 
         this.builder = new StreamsBuilder();
 
+        setUpJobStreams();
+
 
 
     }
 
-    private void setUpStream()
+    /**
+     * Sets up the 2 streams that stem from the school stream. The 2 streams will split into stream pertaining
+     * to the delivery and ride share job streams respectively. Once split, the streams will need to be split
+     * again based on the location of where the job starts from.
+     */
+    private void setUpJobStreams()
     {
-        KStream<String, String> source = builder.stream(this.schoolTopic);
-        //TODO: FINISH SETTING UP THE STREAM SO WE CAN SPLIT THIS SCHOOL STREAM
+        this.sourceStream = builder.stream(this.schoolTopic);
+
+        this.deliveryStream = this.sourceStream.filter(
+                new Predicate<String, String>()
+                {
+                    @Override
+                    public boolean test(String key, String value)
+                    {
+                        JSONObject json = (JSONPObject) new JSONParser().parse(value);
+                        String jobType = json.get("job_type").toString();
+
+                        if(jobType.equalsIgnoreCase("delivery"))
+                            return true;
+
+                        return false;
+                    }
+                }
+        );
+
+        this.rideShareStream = this.sourceStream.filter(
+                new Predicate<String, String>() {
+                    @Override
+                    public boolean test(String key, String value)
+                    {
+                        JSONObject json = (JSONPObject) new JSONParser().parse(value);
+                        String jobType = json.get("job_type").toString();
+
+                        if(jobType.equalsIgnoreCase("rideShare"))
+                            return true;
+
+                        return false;
+                    }
+                }
+        );
     }
+
+
 
     /**
      * Setter and validator for the school topic we are going to be streaming data from. Throws an exception
