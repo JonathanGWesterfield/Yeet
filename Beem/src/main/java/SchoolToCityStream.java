@@ -87,10 +87,19 @@ public class SchoolToCityStream
 
         this.builder = new StreamsBuilder();
 
+        buildTopology();
+
+        return;
+    }
+
+    /**
+     * Calls the jobs splitter and then the city splitter stream functions in order to build the streaming topology out.
+     */
+    private void buildTopology()
+    {
         setUpJobStreams();
 
-
-
+        // setUpCityStreams();
     }
 
     /**
