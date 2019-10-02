@@ -1,23 +1,27 @@
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.util.JSONPObject;
+import com.sun.tools.classfile.ConstantPool;
+import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.Topology;
 import org.json.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.Predicate;
-import org.apache.kafka.streams.kstream.ValueMapper;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * This class is meant to look at the topics of the schools set in the constructor and route the jobs
- * from those topics to their respective cities and city job types.
+ * from those topics to their respective cities and city job types. This kind of application is a
+ * redirect application.
  *
  * @author Jonathan Westerfield
  * @version 1.0
@@ -27,6 +31,7 @@ public class SchoolToCityStream
 {
     private String state;
     private String school;
+    private String appName;
     private String schoolTopic;
     private String schoolBrokerAddress;
     private String cityBrokerAddress;
@@ -35,21 +40,21 @@ public class SchoolToCityStream
     private Map<String, List<PartitionInfo>> brokerKTopics;
     private Map<String, List<PartitionInfo>> cityDeliveryKTopics;
     private Map<String, List<PartitionInfo>> cityRideShareKTopics;
-    private StreamsBuilder builder;
 
-    private KStream<String, String> sourceStream;
-    private KStream<String, String> deliveryStream;
-    private KStream<String, String> rideShareStream;
-    private KStream<String, String>[] cityDeliveryStreams; // array of delivery streams - one stream for each city
-    private KStream<String, String>[] cityRideShareStream; // array of ride share streams - one stream for each city
+    private KafkaConsumer schoolConsumer;
+    private KafkaProducer cityProducer;
+    private Topology topology; // the final streams setup when it is complete
+
+    private CountDownLatch latch; // used to kill the process when the time comes
 
     public static void main(String[] args)
     {
         SchoolToCityStream cityStream = new SchoolToCityStream("TX", "Texas A&M University",
-                "texas-am-university", "localhost:9092", "localhost:9092");
+                "texas-am-university", "localhost:9092", "localhost:9092", "tx-school-city-redirect");
     }
 
     // TODO: MAKE THIS CLASS A MULTITHREADED CLASS SO WE CAN RUN MULTIPLE STREAMS FROM ONE MODULE
+    // INSTRUCTIONS HERE: 'https://kafka.apache.org/23/javadoc/index.html?org/apache/kafka/clients/consumer/KafkaConsumer.html'
 
     /**
      * Empty Default Constructor
@@ -70,94 +75,73 @@ public class SchoolToCityStream
      * @param schoolTopic The school topic we are trying to stream from.
      * @param schoolBrokerAddress The kafka broker topic connection string. Ex. - 'ipaddress:portNum'
      * @param cityBrokerAddress The kafka broker that has the city topic we want. Ex - Ex. - 'ipaddress:portNum'.
+     * @param appName The name given to this splitter module. Ex - tx-school-city-redirect
      * @throws NoSuchElementException
      */
     public SchoolToCityStream(String state, String school, String schoolTopic,
-                              String schoolBrokerAddress, String cityBrokerAddress) throws NoSuchElementException
+                              String schoolBrokerAddress, String cityBrokerAddress, String appName) throws NoSuchElementException
     {
         setState(state);
         this.school = school;
         this.schoolBrokerAddress = schoolBrokerAddress;
         this.cityBrokerAddress = cityBrokerAddress;
+        this.appName = appName;
 
+        // Get all of our topics in order so we can direct our messages to them.
         setSchoolTopic(schoolBrokerAddress, schoolTopic);
         this.brokerKTopics = getKTopics(cityBrokerAddress);
         this.cityDeliveryKTopics = getDeliveryTopics(this.brokerKTopics);
         this.cityRideShareKTopics = getRideShareTopics(this.brokerKTopics);
 
-        this.builder = new StreamsBuilder();
+        this.schoolConsumer = new KafkaConsumer<String, String>(getConsumerProps());
+        this.cityProducer = new KafkaProducer<String, String>(getProducerProps());
 
-        buildTopology();
 
-        return;
+        this.latch = new CountDownLatch(1);
+
     }
 
     /**
-     * Calls the jobs splitter and then the city splitter stream functions in order to build the streaming topology out.
+     * Gets called when we need to shut down this redirect module. Closes the consumer and the producer.
      */
-    private void buildTopology()
+    public void quit()
     {
-        setUpJobStreams();
-
-        // setUpCityStreams();
+        this.schoolConsumer.close();
+        this.cityProducer.close();
     }
 
     /**
-     * Sets up the 2 streams that stem from the school stream. The 2 streams will split into stream pertaining
-     * to the delivery and ride share job streams respectively. Once split, the streams will need to be split
-     * again based on the location of where the job starts from.
+     * Sets the properties for us to start consuming messages from the school topic.
+     * @return The properties needed to start consuming from the school topic.
      */
-    private void setUpJobStreams()
+    public Properties getConsumerProps()
     {
-        this.sourceStream = builder.stream(this.schoolTopic);
+        Properties props = new Properties();
+        props.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, this.schoolBrokerAddress);
+        props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, this.appName);
+        props.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
+        props.setProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "500"); // consume every 500 milliseconds
+        props.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+        props.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
 
-        this.deliveryStream = this.sourceStream.filter(
-                new Predicate<String, String>()
-                {
-                    @Override
-                    public boolean test(String key, String value)
-                    {
-                        JSONObject json = new JSONObject(value);
-                        String jobType = json.get("job_type").toString();
-
-                        if(jobType.equalsIgnoreCase("delivery"))
-                            return true;
-
-                        return false;
-                    }
-                }
-        );
-
-        this.rideShareStream = this.sourceStream.filter(
-                new Predicate<String, String>() {
-                    @Override
-                    public boolean test(String key, String value)
-                    {
-                        JSONObject json = new JSONObject(value);
-                        String jobType = json.get("job_type").toString();
-
-                        if(jobType.equalsIgnoreCase("rideShare"))
-                            return true;
-
-                        return false;
-                    }
-                }
-        );
+        return props;
     }
 
-    //TODO: FIGURE OUT HOW TO FUCKING BRANCH THESE EVENTS IN A SANE MANNER
-//    /**
-//     * How to branch streams is found here:
-//     * @see 'https://kafka.apache.org/20/documentation/streams/developer-guide/dsl-api.html#transform-a-stream'
-//     * @see 'https://kafka-tutorials.confluent.io/split-a-stream-of-events-into-substreams/kstreams.html'
-//     */
-//    public void setUpCityStreams()
-//    {
-//        this.cityDeliveryStreams = this.deliveryStream.branch(
-//                new Ks
-//        );
-//    }
+    /**
+     * Sets the properties for us to start producing messages after we have processed the messages recieved
+     * by the consumer;
+     * @return The properties needed to start producing messages for the cities.
+     */
+    public Properties getProducerProps()
+    {
+        Properties props = new Properties();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, this.cityBrokerAddress);
+        props.put(ProducerConfig.ACKS_CONFIG, "all");
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
 
+        return props;
+    }
 
 
     /**
@@ -317,3 +301,100 @@ public class SchoolToCityStream
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//    /**
+//     * Calls the jobs splitter and then the city splitter stream functions in order to build the streaming topology out.
+//     */
+//    private Topology buildTopology()
+//    {
+//        setUpJobStreams();
+//
+//        // setUpCityStreams();
+//
+//        return this.builder.build();
+//    }
+//
+//    /**
+//     * Sets up the 2 streams that stem from the school stream. The 2 streams will split into stream pertaining
+//     * to the delivery and ride share job streams respectively. Once split, the streams will need to be split
+//     * again based on the location of where the job starts from.
+//     */
+//    private void setUpJobStreams()
+//    {
+//        this.sourceStream = builder.stream(this.schoolTopic);
+//
+//        // Filter to get all of the jobs that are delivery jobs
+//        this.deliveryStream = this.sourceStream.filter(
+//                new Predicate<String, String>()
+//                {
+//                    @Override
+//                    public boolean test(String key, String value)
+//                    {
+//                        JSONObject json = new JSONObject(value);
+//                        String jobType = json.get("job_type").toString();
+//
+//                        if(jobType.equalsIgnoreCase("delivery"))
+//                            return true;
+//
+//                        return false;
+//                    }
+//                }
+//        );
+//
+//        // Filter to get all of the jobs that are rideshare jobs
+//        this.rideShareStream = this.sourceStream.filter(
+//                new Predicate<String, String>() {
+//                    @Override
+//                    public boolean test(String key, String value)
+//                    {
+//                        JSONObject json = new JSONObject(value);
+//                        String jobType = json.get("job_type").toString();
+//
+//                        if(jobType.equalsIgnoreCase("rideShare"))
+//                            return true;
+//
+//                        return false;
+//                    }
+//                }
+//        );
+//    }
+//
+//    //TODO: FIGURE OUT HOW TO FUCKING BRANCH THESE EVENTS IN A SANE MANNER
+//    /**
+//     * How to branch streams is found here:
+//     * @see 'https://kafka.apache.org/20/documentation/streams/developer-guide/dsl-api.html#transform-a-stream'
+//     * @see 'https://kafka-tutorials.confluent.io/split-a-stream-of-events-into-substreams/kstreams.html'
+//     */
+//    public void setUpCityStreams()
+//    {
+//
+//
+//        this.cityDeliveryStreams = this.deliveryStream.filter(
+//                new Predicate<String, String>() {
+//                    @Override
+//                    public boolean test(String s, String s2) {
+//                        return false;
+//                    }
+//                }
+//        );
+//    }
+//
+//    /* Try this. Create a stream arraylist that is based on each city that we can send to. Each of those streams
+//        has to send to its specific sink processor (derived from the city topics map). Create a for loop that
+//        will go down the list of topics and create a stream for each city with have in our stored city topics.
+//        Use source.filter for each one. Create a predicate for each city topic we have.
+//    */
+
