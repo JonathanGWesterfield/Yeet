@@ -7,6 +7,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -19,7 +20,7 @@ import java.util.Properties;
 public class Test_KafkaJsonSerializer
 {
     @Test
-    public void testSerialize()
+    public void testDeliveryJobSerialize()
     {
         String topic = "texas-am-university";
 
@@ -75,6 +76,60 @@ public class Test_KafkaJsonSerializer
 
     }
 
+    @Test
+    public void testRideShareJobSerialize()
+    {
+        String topic = "texas-am-university";
+
+        RideShareJob job = new RideShareJob(123456789, "Texas A&M University",
+                "400 Bizzell St, College Station, TX 77843", "11410 Century Oaks Terrace, Austin, TX 78758", 2);
+
+        Properties props = configProps();
+        Producer<String, RideShareJob> producer =
+                new KafkaProducer<String, RideShareJob>(
+                        props,
+                        new StringSerializer(),
+                        new KafkaJsonSerializer()
+                );
+
+        // Send a message to the topic
+        producer.send(new ProducerRecord<String, RideShareJob>(topic, "0", job));
+
+        // Get that message from the topic, deserialize it and test that it is equal (has the same contents)
+        Consumer<String, DeliveryJob> consumer =
+                new KafkaConsumer<String, DeliveryJob>(
+                        configConsumeProps(),
+                        new StringDeserializer(),
+                        new KafkaJsonDeserializer<DeliveryJob>(DeliveryJob.class)
+                );
+
+        // Subscribe to the topic
+        consumer.subscribe(Collections.singletonList(topic));
+
+        DeliveryJob recordJob = new DeliveryJob();
+
+        ConsumerRecords<String, DeliveryJob> records = consumer.poll(1000);
+
+        for (ConsumerRecord<String, DeliveryJob> record : records)
+        {
+            if(record.value() != null)
+            {
+                System.out.println(record.value());
+                // System.out.println(record.value());
+                recordJob = record.value();
+            }
+        }
+
+        consumer.commitAsync();
+
+        assertEquals(true, job.equals(recordJob));
+
+        // consumer.commitAsync();
+
+        consumer.close();
+        System.out.println("DONE");
+    }
+
     public Properties configConsumeProps()
     {
         Properties props = new Properties();
@@ -93,27 +148,27 @@ public class Test_KafkaJsonSerializer
         Properties props = new Properties();
 
         // Assign localhost ID
-        props.put("bootstrap.servers", "localhost:9092");
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
 
         //Set acknowledgements for producer requests
-        props.put("acks", "all");
+        props.put(ProducerConfig.ACKS_CONFIG, "all");
 
         //if the request fails, the producer can automatically retry
-        props.put("retries", 0);
+        props.put(ProducerConfig.RETRIES_CONFIG, 0);
 
         // Specify the buffer size in config
-        props.put("batch.size", 16384);
+        props.put(ProducerConfig.BATCH_SIZE_CONFIG, 16384);
 
         //Reduce the no of requests less than 0
-        props.put("linger.ms", 1);
+        props.put(ProducerConfig.LINGER_MS_CONFIG, 1);
 
         //The buffer.memory controls the total amount of memory available to the producer for buffering.
-        props.put("buffer.memory", 33554432);
+        props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432);
 
-        props.put("key.serializer",
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
                 "org.apache.kafka.common.serialization.StringSerializer");
 
-        props.put("value.serializer",
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
                 "org.apache.kafka.common.serialization.StringSerializer");
 
         return props;

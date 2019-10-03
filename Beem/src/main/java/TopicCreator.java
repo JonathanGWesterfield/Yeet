@@ -3,6 +3,8 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.KafkaFuture;
+import org.apache.kafka.common.PartitionInfo;
+import org.apache.kafka.common.TopicPartitionInfo;
 import org.apache.kafka.common.errors.TopicExistsException;
 import java.lang.Throwable;
 
@@ -90,6 +92,17 @@ public class TopicCreator
         CreateTopicsResult result = admin.createTopics(Arrays.asList(topic.configs(configs)));
 
         logTopicCreation(result);
+    }
+
+    public String getNewTopicName()
+    {
+        // Case where user is calling this before creating the new topic
+        if(this.topic == null)
+            throw new NullPointerException("You must call createTopic() before you can get the new topic details!!");
+
+
+
+        return this.topic.name();
     }
 
     /**

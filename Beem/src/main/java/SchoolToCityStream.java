@@ -1,10 +1,11 @@
 import com.sun.tools.classfile.ConstantPool;
-import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.PartitionInfo;
+import org.apache.kafka.common.TopicPartitionInfo;
+import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -15,8 +16,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.streams.kstream.KStream;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This class is meant to look at the topics of the schools set in the constructor and route the jobs
@@ -27,7 +30,7 @@ import java.util.concurrent.CountDownLatch;
  * @version 1.0
  * @since 9/19/2019
  */
-public class SchoolToCityStream
+public class SchoolToCityStream implements Runnable
 {
     private String state;
     private String school;
@@ -36,16 +39,18 @@ public class SchoolToCityStream
     private String schoolBrokerAddress;
     private String cityBrokerAddress;
     private HashMap<String, String> cities; // used to keep the cities we have in our database and their topic names
-    private Map<String, List<PartitionInfo>> schoolKTopics;
-    private Map<String, List<PartitionInfo>> brokerKTopics;
+    private Map<String, String> cityTopics;
+
+    // No longer used
     private Map<String, List<PartitionInfo>> cityDeliveryKTopics;
     private Map<String, List<PartitionInfo>> cityRideShareKTopics;
 
-    private KafkaConsumer schoolConsumer;
-    private KafkaProducer cityProducer;
+    private KafkaConsumer<String, String> schoolConsumer;
+    private KafkaProducer<String, String> cityProducer;
     private Topology topology; // the final streams setup when it is complete
 
     private CountDownLatch latch; // used to kill the process when the time comes
+    private final AtomicBoolean closed = new AtomicBoolean(false);
 
     public static void main(String[] args)
     {
@@ -89,9 +94,8 @@ public class SchoolToCityStream
 
         // Get all of our topics in order so we can direct our messages to them.
         setSchoolTopic(schoolBrokerAddress, schoolTopic);
-        this.brokerKTopics = getKTopics(cityBrokerAddress);
-        this.cityDeliveryKTopics = getDeliveryTopics(this.brokerKTopics);
-        this.cityRideShareKTopics = getRideShareTopics(this.brokerKTopics);
+//        this.brokerKTopics = getKTopics(cityBrokerAddress);
+        this.cityTopics = getCityTopics(getKTopics(cityBrokerAddress));
 
         this.schoolConsumer = new KafkaConsumer<String, String>(getConsumerProps());
         this.cityProducer = new KafkaProducer<String, String>(getProducerProps());
@@ -102,12 +106,95 @@ public class SchoolToCityStream
     }
 
     /**
+     * This is the run function that will start when we start the thread. Should split information until a kill
+     * signal is sent.
+     */
+    public void run()
+    {
+        try
+        {
+            this.schoolConsumer.subscribe(Arrays.asList(this.schoolTopic));
+            while (!closed.get())
+            {
+                ConsumerRecords records = this.schoolConsumer.poll(Duration.ofMillis(500));
+
+                records.forEach(record -> {
+                    String job = ((ConsumerRecord<String, String>) record).value();
+                    String key = getKey(job);
+                    String topic = getDestinationTopic((job));
+
+                    this.cityProducer.send(new ProducerRecord<String, String>(topic, key, job));
+                });
+
+                // Handle new records
+            }
+        }
+        catch (WakeupException e)
+        {
+            // Ignore exception if closing
+            if (!closed.get())
+                throw e;
+        }
+        finally
+        {
+            this.schoolConsumer.close();
+        }
+    }
+
+    /**
      * Gets called when we need to shut down this redirect module. Closes the consumer and the producer.
      */
-    public void quit()
+    public void shutdown()
     {
         this.schoolConsumer.close();
         this.cityProducer.close();
+        this.schoolConsumer.wakeup();
+        this.closed.set(true);
+    }
+
+    /**
+     * This is a helper to extract the key from the record. The key will be the string representation of the
+     * customer id. This can be changed at any point in the future as long as nothing is using the key for
+     * special things down stream.
+     * @param job The json string representing the job
+     * @return The customer id as a string to be sent as the key
+     */
+    public String getKey(String job)
+    {
+        JSONObject json = new JSONObject(job);
+        return json.get("customer_id").toString();
+    }
+
+    /**
+     * Uses the city, state, and job type to determine what topic this job should be sent to. This uses the topic
+     * naming convention, which is "city-state-job"
+     * @param job The json representation of the job message that came from Kafka.
+     * @return The topic name that this job should be sent to.
+     */
+    public String getDestinationTopic(String job)
+    {
+        JSONObject json = new JSONObject(job);
+        String city = json.get("city").toString();
+        String stateCode = json.get("state").toString();
+        String jobType = json.get("job_type").toString();
+
+        StringBuilder topicName = new StringBuilder();
+        topicName.append(city.toLowerCase().trim())
+                .append("-")
+                .append(stateCode.toLowerCase().trim())
+                .append("-")
+                .append(jobType.toLowerCase().trim());
+
+        // TODO: NOTIFY USERS DOWNSTREAM THAT THERE IS A NEW TOPIC THAT NEEDS TO BE TRACKED AND CONSUMED
+        // If the topic doesn't exist, we need to create a new one and send it there.
+        if(!cityTopics.containsKey(topicName.toString()))
+        {
+            TopicCreator newTopic = new TopicCreator("localhost:2181", "localhost:9092");
+            newTopic.createTopic(topicName.toString(), 1, 1);
+            this.cityTopics.put(newTopic.getNewTopicName(), "new");
+        }
+
+        return topicName.toString();
     }
 
     /**
@@ -197,6 +284,22 @@ public class SchoolToCityStream
     }
 
     /**
+     * Filters through the Map of topics retrieved from the broker and takes only the topic names and puts
+     * them into another hashmap for quick lookups of names.
+     * @param kTopics The topics we originally got from the broker.
+     * @return A map of the topic names and them all being originally retrieved from the broker, not created in this class.
+     */
+    public Map<String, String> getCityTopics(Map<String, List<PartitionInfo>> kTopics)
+    {
+        Map<String, String> map = new HashMap<>();
+
+        for (String topic : kTopics.keySet())
+            map.put(topic, "original"); // original since it was retrieved from the broker, not created from here
+
+        return map;
+    }
+
+    /**
      * Used to segregate the topics into a delivery topic map for quick look up and categorization of the
      * messages into their respective streams.
      * @param brokerTopics All of the topics that we pulled from the broker.
@@ -280,26 +383,6 @@ public class SchoolToCityStream
             return true;
         return false;
     }
-
-
-    /**
-     * Create the properties for this streaming application. This is by default setup for only looking
-     * at school topics in Texas.
-     * @return The configuration properties to connect to our brokers.
-     */
-    public Properties createProps()
-    {
-        Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "tx-school-city-stream");
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-
-        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-
-        return props;
-    }
-
-
 }
 
 
@@ -311,9 +394,25 @@ public class SchoolToCityStream
 
 
 
+// Ditching this code because I fundamentally misunderstood what streams are for. They are mostly for data
+// Transformation, not routing.
 
-
-
+// /**
+ //     * Create the properties for this streaming application. This is by default setup for only looking
+ //     * at school topics in Texas.
+ //     * @return The configuration properties to connect to our brokers.
+ //     */
+//    public Properties getStreamProps()
+//    {
+//        Properties props = new Properties();
+//        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "tx-school-city-stream");
+//        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+//
+//        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+//        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+//
+//        return props;
+//    }
 
 //    /**
 //     * Calls the jobs splitter and then the city splitter stream functions in order to build the streaming topology out.
